@@ -8,6 +8,9 @@ root.title("System stacji ładowania pojazdów elektrycznych")
 root.geometry("1400x900")
 
 stations = []
+employees = []
+clients = []
+
 
 def get_coordinates(city):
     try:
@@ -56,6 +59,7 @@ def add_station():
         station_name_entry.delete(0, END)
         station_city_entry.delete(0, END)
         update_station_list()
+        refresh_station_dropdowns()
 
 
 top_frame = Frame(root)
@@ -74,11 +78,60 @@ station_city_entry.grid(row=1, column=1)
 station_listbox = Listbox(station_frame, width=30)
 station_listbox.grid(row=3, column=0, columnspan=2)
 
+employee_frame = LabelFrame(top_frame, text="Pracownicy", padx=10, pady=10)
+employee_frame.grid(row=0, column=1, padx=5, pady=5)
+
+client_frame = LabelFrame(top_frame, text="Klienci", padx=10, pady=10)
+client_frame.grid(row=0, column=2, padx=5, pady=5)
+
+client_name_entry = Entry(client_frame)
+Label(client_frame, text="Nazwa:").grid(row=0, column=0)
+client_name_entry.grid(row=0, column=1)
+
+Label(client_frame, text="Stacja:").grid(row=1, column=0)
+client_station_var = StringVar()
+client_station_dropdown = OptionMenu(client_frame, client_station_var, "")
+client_station_dropdown.grid(row=1, column=1)
+
+client_listbox = Listbox(client_frame, width=30)
+client_listbox.grid(row=3, column=0, columnspan=2)
+
+
+employee_name_entry = Entry(employee_frame)
+Label(employee_frame, text="Imię:").grid(row=0, column=0)
+employee_name_entry.grid(row=0, column=1)
+
+Label(employee_frame, text="Stacja:").grid(row=1, column=0)
+employee_station_var = StringVar()
+employee_station_dropdown = OptionMenu(employee_frame, employee_station_var, "")
+employee_station_dropdown.grid(row=1, column=1)
+
+employee_listbox = Listbox(employee_frame, width=30)
+employee_listbox.grid(row=3, column=0, columnspan=2)
+
+
 button_frame_station = Frame(station_frame)
 button_frame_station.grid(row=2, column=0, columnspan=2)
 
+
 btn_add_station = Button(button_frame_station, text="Dodaj", command=add_station)
 btn_add_station.pack(side=LEFT, padx=5)
+
+def refresh_station_dropdowns():
+    menu_emp = employee_station_dropdown["menu"]
+    menu_cli = client_station_dropdown["menu"]
+
+    menu_emp.delete(0, END)
+    menu_cli.delete(0, END)
+
+    for s in stations:
+        menu_emp.add_command(label=s.name, command=lambda val=s.name: employee_station_var.set(val))
+        menu_cli.add_command(label=s.name, command=lambda val=s.name: client_station_var.set(val))
+
+    if stations:
+        employee_station_var.set(stations[0].name)
+        client_station_var.set(stations[0].name)
+
 
 map_widget = tkintermapview.TkinterMapView(root, width=1400, height=500, corner_radius=5)
 map_widget.pack(pady=10)
