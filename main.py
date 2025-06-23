@@ -45,11 +45,39 @@ class Station:
     def update_marker(self):
         self.marker.set_text(self.get_marker_text())
 
+class Employee:
+    def __init__(self, name, station):
+        self.name = name
+        self.station = station
+        station.employees.append(self)
+        employees.append(self)
+        station.update_marker()
+
+class Client:
+    def __init__(self, name, station):
+        self.name = name
+        self.station = station
+        station.clients.append(self)
+        clients.append(self)
+        station.update_marker()
+
+
 
 def update_station_list():
     station_listbox.delete(0, END)
     for i, s in enumerate(stations):
         station_listbox.insert(i, f"{s.name} ({s.city})")
+
+def update_employee_list():
+    employee_listbox.delete(0, END)
+    for i, e in enumerate(employees):
+        employee_listbox.insert(i, f"{e.name} - {e.station.name}")
+
+def update_client_list():
+    client_listbox.delete(0, END)
+    for i, c in enumerate(clients):
+        client_listbox.insert(i, f"{c.name} - {c.station.name}")
+
 
 def add_station():
     name = station_name_entry.get()
@@ -60,6 +88,25 @@ def add_station():
         station_city_entry.delete(0, END)
         update_station_list()
         refresh_station_dropdowns()
+
+def add_employee():
+    name = employee_name_entry.get()
+    station_name = employee_station_var.get()
+    station = next((s for s in stations if s.name == station_name), None)
+    if name and station:
+        Employee(name, station)
+        employee_name_entry.delete(0, END)
+        update_employee_list()
+
+def add_client():
+    name = client_name_entry.get()
+    station_name = client_station_var.get()
+    station = next((s for s in stations if s.name == station_name), None)
+    if name and station:
+        Client(name, station)
+        client_name_entry.delete(0, END)
+        update_client_list()
+
 
 
 top_frame = Frame(root)
@@ -96,6 +143,12 @@ client_station_dropdown.grid(row=1, column=1)
 client_listbox = Listbox(client_frame, width=30)
 client_listbox.grid(row=3, column=0, columnspan=2)
 
+button_frame_client = Frame(client_frame)
+button_frame_client.grid(row=4, column=0, columnspan=2, pady=5)
+
+btn_add_client = Button(button_frame_client, text="Dodaj", command=add_client)
+btn_add_client.pack(side=LEFT, padx=5)
+
 
 employee_name_entry = Entry(employee_frame)
 Label(employee_frame, text="Imię:").grid(row=0, column=0)
@@ -108,6 +161,13 @@ employee_station_dropdown.grid(row=1, column=1)
 
 employee_listbox = Listbox(employee_frame, width=30)
 employee_listbox.grid(row=3, column=0, columnspan=2)
+
+button_frame_employee = Frame(employee_frame)
+button_frame_employee.grid(row=4, column=0, columnspan=2, pady=5)
+
+btn_add_employee = Button(button_frame_employee, text="Dodaj", command=add_employee)
+btn_add_employee.pack(side=LEFT, padx=5)
+
 
 
 button_frame_station = Frame(station_frame)
