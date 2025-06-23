@@ -10,6 +10,10 @@ root.geometry("1400x900")
 stations = []
 employees = []
 clients = []
+edit_index = None
+edit_employee_index = None
+edit_client_index = None
+
 
 
 def get_coordinates(city):
@@ -40,7 +44,7 @@ class Station:
     def get_marker_text(self):
         emp = ", ".join([e.name for e in self.employees]) or "Brak"
         cli = ", ".join([c.name for c in self.clients]) or "Brak"
-        return f"Stacja: {self.name}\\nMiasto: {self.city}\\nPracownicy: {emp}\\nKlienci: {cli}"
+        return f"Stacja: {self.name}\nMiasto: {self.city}\nPracownicy: {emp}\nKlienci: {cli}"
 
     def update_marker(self):
         self.marker.set_text(self.get_marker_text())
@@ -148,14 +152,6 @@ def add_employee():
         employee_name_entry.delete(0, END)
         update_employee_list()
 
-def add_client():
-    name = client_name_entry.get()
-    station_name = client_station_var.get()
-    station = next((s for s in stations if s.name == station_name), None)
-    if name and station:
-        Client(name, station)
-        client_name_entry.delete(0, END)
-        update_client_list()
 
 def delete_employee():
     i = employee_listbox.curselection()
@@ -165,6 +161,76 @@ def delete_employee():
     emp.station.employees.remove(emp)
     emp.station.update_marker()
     update_employee_list()
+
+def edit_employee():
+    global edit_employee_index
+    i = employee_listbox.curselection()
+    if not i:
+        return
+    emp = employees[i[0]]
+    employee_name_entry.delete(0, END)
+    employee_name_entry.insert(0, emp.name)
+    employee_station_var.set(emp.station.name)
+    edit_employee_index = i[0]
+    btn_add_employee.config(text="Zapisz", command=update_employee)
+
+def update_employee():
+    global edit_employee_index
+    name = employee_name_entry.get()
+    station_name = employee_station_var.get()
+    station = next((s for s in stations if s.name == station_name), None)
+    if name and station and edit_employee_index is not None:
+        emp = employees[edit_employee_index]
+        emp.station.employees.remove(emp)
+        emp.name = name
+        emp.station = station
+        station.employees.append(emp)
+        station.update_marker()
+        emp.station.update_marker()
+        update_employee_list()
+        employee_name_entry.delete(0, END)
+        btn_add_employee.config(text="Dodaj", command=add_employee)
+        edit_employee_index = None
+
+def add_client():
+    name = client_name_entry.get()
+    station_name = client_station_var.get()
+    station = next((s for s in stations if s.name == station_name), None)
+    if name and station:
+        Client(name, station)
+        client_name_entry.delete(0, END)
+        update_client_list()
+
+def edit_client():
+    global edit_client_index
+    i = client_listbox.curselection()
+    if not i:
+        return
+    cli = clients[i[0]]
+    client_name_entry.delete(0, END)
+    client_name_entry.insert(0, cli.name)
+    client_station_var.set(cli.station.name)
+    edit_client_index = i[0]
+    btn_add_client.config(text="Zapisz", command=update_client)
+
+def update_client():
+    global edit_client_index
+    name = client_name_entry.get()
+    station_name = client_station_var.get()
+    station = next((s for s in stations if s.name == station_name), None)
+    if name and station and edit_client_index is not None:
+        cli = clients[edit_client_index]
+        cli.station.clients.remove(cli)
+        cli.name = name
+        cli.station = station
+        station.clients.append(cli)
+        station.update_marker()
+        cli.station.update_marker()
+        update_client_list()
+        client_name_entry.delete(0, END)
+        btn_add_client.config(text="Dodaj", command=add_client)
+        edit_client_index = None
+
 
 def delete_client():
     i = client_listbox.curselection()
@@ -197,6 +263,29 @@ station_listbox.grid(row=3, column=0, columnspan=2)
 employee_frame = LabelFrame(top_frame, text="Pracownicy", padx=10, pady=10)
 employee_frame.grid(row=0, column=1, padx=5, pady=5)
 
+
+
+
+employee_name_entry = Entry(employee_frame)
+Label(employee_frame, text="Imię:").grid(row=0, column=0)
+employee_name_entry.grid(row=0, column=1)
+
+Label(employee_frame, text="Stacja:").grid(row=1, column=0)
+employee_station_var = StringVar()
+employee_station_dropdown = OptionMenu(employee_frame, employee_station_var, "")
+employee_station_dropdown.grid(row=1, column=1)
+
+employee_listbox = Listbox(employee_frame, width=30)
+employee_listbox.grid(row=3, column=0, columnspan=2)
+
+button_frame_employee = Frame(employee_frame)
+button_frame_employee.grid(row=4, column=0, columnspan=2, pady=5)
+
+btn_add_employee = Button(button_frame_employee, text="Dodaj", command=add_employee)
+btn_add_employee.pack(side=LEFT, padx=5)
+btn_edit_employee = Button(button_frame_employee, text="Edytuj", command=edit_employee)
+btn_edit_employee.pack(side=LEFT, padx=5)
+
 client_frame = LabelFrame(top_frame, text="Klienci", padx=10, pady=10)
 client_frame.grid(row=0, column=2, padx=5, pady=5)
 
@@ -217,26 +306,8 @@ button_frame_client.grid(row=4, column=0, columnspan=2, pady=5)
 
 btn_add_client = Button(button_frame_client, text="Dodaj", command=add_client)
 btn_add_client.pack(side=LEFT, padx=5)
-
-
-employee_name_entry = Entry(employee_frame)
-Label(employee_frame, text="Imię:").grid(row=0, column=0)
-employee_name_entry.grid(row=0, column=1)
-
-Label(employee_frame, text="Stacja:").grid(row=1, column=0)
-employee_station_var = StringVar()
-employee_station_dropdown = OptionMenu(employee_frame, employee_station_var, "")
-employee_station_dropdown.grid(row=1, column=1)
-
-employee_listbox = Listbox(employee_frame, width=30)
-employee_listbox.grid(row=3, column=0, columnspan=2)
-
-button_frame_employee = Frame(employee_frame)
-button_frame_employee.grid(row=4, column=0, columnspan=2, pady=5)
-
-btn_add_employee = Button(button_frame_employee, text="Dodaj", command=add_employee)
-btn_add_employee.pack(side=LEFT, padx=5)
-
+btn_edit_client = Button(button_frame_client, text="Edytuj", command=edit_client)
+btn_edit_client.pack(side=LEFT, padx=5)
 
 
 button_frame_station = Frame(station_frame)
