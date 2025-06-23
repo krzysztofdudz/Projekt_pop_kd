@@ -89,6 +89,56 @@ def add_station():
         update_station_list()
         refresh_station_dropdowns()
 
+def edit_station():
+    i = station_listbox.curselection()
+    if not i:
+        return
+    station = stations[i[0]]
+    station_name_entry.delete(0, END)
+    station_city_entry.delete(0, END)
+    station_name_entry.insert(0, station.name)
+    station_city_entry.insert(0, station.city)
+
+    global edit_index
+    edit_index = i[0]
+    btn_add_station.config(text="Zapisz", command=update_station)
+
+
+def update_station():
+    global edit_index
+    name = station_name_entry.get()
+    city = station_city_entry.get()
+    if name and city and edit_index is not None:
+        station = stations[edit_index]
+        station.name = name
+        station.city = city
+        station.coords = get_coordinates(city)
+        station.marker.set_position(station.coords[0], station.coords[1])
+        station.update_marker()
+        update_station_list()
+        refresh_station_dropdowns()
+        station_name_entry.delete(0, END)
+        station_city_entry.delete(0, END)
+        btn_add_station.config(text="Dodaj", command=add_station)
+        edit_index = None
+
+
+def delete_station():
+    i = station_listbox.curselection()
+    if not i:
+        return
+    station = stations.pop(i[0])
+    station.marker.delete()
+    for e in station.employees:
+        employees.remove(e)
+    for c in station.clients:
+        clients.remove(c)
+    update_station_list()
+    update_employee_list()
+    update_client_list()
+    refresh_station_dropdowns()
+
+
 def add_employee():
     name = employee_name_entry.get()
     station_name = employee_station_var.get()
@@ -106,6 +156,25 @@ def add_client():
         Client(name, station)
         client_name_entry.delete(0, END)
         update_client_list()
+
+def delete_employee():
+    i = employee_listbox.curselection()
+    if not i:
+        return
+    emp = employees.pop(i[0])
+    emp.station.employees.remove(emp)
+    emp.station.update_marker()
+    update_employee_list()
+
+def delete_client():
+    i = client_listbox.curselection()
+    if not i:
+        return
+    cli = clients.pop(i[0])
+    cli.station.clients.remove(cli)
+    cli.station.update_marker()
+    update_client_list()
+
 
 
 
@@ -176,6 +245,20 @@ button_frame_station.grid(row=2, column=0, columnspan=2)
 
 btn_add_station = Button(button_frame_station, text="Dodaj", command=add_station)
 btn_add_station.pack(side=LEFT, padx=5)
+
+btn_edit_station = Button(button_frame_station, text="Edytuj", command=edit_station)
+btn_edit_station.pack(side=LEFT, padx=5)
+
+
+btn_delete_station = Button(button_frame_station, text="Usuń", command=delete_station)
+btn_delete_station.pack(side=LEFT, padx=5)
+
+btn_delete_employee = Button(button_frame_employee, text="Usuń", command=delete_employee)
+btn_delete_employee.pack(side=LEFT, padx=5)
+
+btn_delete_client = Button(button_frame_client, text="Usuń", command=delete_client)
+btn_delete_client.pack(side=LEFT, padx=5)
+
 
 def refresh_station_dropdowns():
     menu_emp = employee_station_dropdown["menu"]
