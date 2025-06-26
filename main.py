@@ -264,8 +264,6 @@ employee_frame = LabelFrame(top_frame, text="Pracownicy", padx=10, pady=10)
 employee_frame.grid(row=0, column=1, padx=5, pady=5)
 
 
-
-
 employee_name_entry = Entry(employee_frame)
 Label(employee_frame, text="Imię:").grid(row=0, column=0)
 employee_name_entry.grid(row=0, column=1)
